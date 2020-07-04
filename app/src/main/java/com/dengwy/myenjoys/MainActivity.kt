@@ -39,5 +39,7 @@ class MainActivity : AppCompatActivity(){
 
         val enjoyRepository = EnjoyRepository(application)
         enjoyRepository.initDB()
+
+
     }
 }

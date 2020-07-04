@@ -1,12 +1,25 @@
 package com.dengwy.myenjoys
 
 import android.app.Application
+import android.content.Context
+import android.content.SharedPreferences
+import android.util.Log
 import androidx.lifecycle.LiveData
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.io.BufferedReader
+import java.io.InputStream
+import java.io.InputStreamReader
 
 class EnjoyRepository(application: Application) {
+    val CSV_FILE: String = "allEnjoys.csv"
+    val UPDATED_FILE: String = "updated.txt"
+    val KEY_FILE_UPDATE_DATETIME: String = "ENJOY_UPDATED_DATE"
+
     val enjoyDao: EnjoyDao = EnjoyDatabase.getInstance(application.applicationContext).enjoyDao()
+    val enjoyInputStream: InputStream = application.resources.assets.open(CSV_FILE)
+    val updatedInputStream: InputStream = application.resources.assets.open(UPDATED_FILE)
+    val sp: SharedPreferences = application.getSharedPreferences("MY_ENJOY", Context.MODE_PRIVATE)
 
     fun findAllByType(type: String) : LiveData<List<Enjoy>> {
         return enjoyDao.findAllByType(type)
@@ -18,19 +31,49 @@ class EnjoyRepository(application: Application) {
 
     fun initDB() {
         GlobalScope.launch {
-            val drama = newEnjoy("2019", "日剧", "秋", "G弦上的你和我", "波瑠 中川大志")
-            val movie = newEnjoy("2011", "日影", "-", "白夜行", "堀北真希 高良健吾")
-            val morning = newEnjoy("2003", "晨间剧", "秋", "晴朗家族", "上野树里 石原里美 锦户亮")
-            val sp = newEnjoy("2019", "SP", "-", "下町火箭", "阿部宽 竹内凉真")
-            val animation = newEnjoy("2016", "动画", "-", "你的名字", "不明")
-            val drama2 = newEnjoy("2013", "日剧", "夏", "半泽直树", "堺雅人 香川照之 及川光博 泷藤贤一 上户彩")
-            val movie2 = newEnjoy("2016", "日影", "-", "垫底辣妹", "有村架纯 伊藤淳史")
-            val morning2 = newEnjoy("2013", "晨间剧", "春", "海女", "能年玲奈 桥本爱 小泉今日子 福士苍汰 药师丸博子 小池彻平")
-            val sp2 = newEnjoy("2018", "SP", "-", "女儿的结婚", "中井贵一 波瑠")
-            val animation2 = newEnjoy("2001", "动画", "-", "千与千寻", "不明")
-            deleteAll()
-            insertAll(listOf(drama, movie, morning, sp, animation, drama2, movie2, morning2, sp2, animation2))
+            var lastModified: String = sp.getString(KEY_FILE_UPDATE_DATETIME, "")!!
+            var enjoyLastModified: String = getEnjoyFileLastModified()
+            Log.d("EnjoyFragment", "sp modify date:" + lastModified)
+            Log.d("EnjoyFragment", "fileLastModified:" + enjoyLastModified)
+            // 只有文件更新过才再次加载
+            if (enjoyLastModified > lastModified) {
+                // 处理CSV文件，写DB
+                var enjoyList: ArrayList<Enjoy> = arrayListOf()
+                var inputStreamReader: InputStreamReader = InputStreamReader(enjoyInputStream)
+                var bufferedReader: BufferedReader = BufferedReader(inputStreamReader)
+                var line: String? = bufferedReader.readLine()
+                while (line != null) {
+                    line = bufferedReader.readLine()
+                    line?.let {
+                        parseEnjoy(it)?.let { enjoyList.add(it) }
+                    }
+                }
+                deleteAll()
+                insertAll(enjoyList)
+
+                // 更新SharedPreference
+                val spEdit = sp.edit()
+                spEdit.putString(KEY_FILE_UPDATE_DATETIME, enjoyLastModified)
+                spEdit.apply()
+            }
         }
+    }
+
+    fun parseEnjoy(line: String) : Enjoy? {
+        var enjoy: Enjoy? = null
+        if (line != null && line.isNotEmpty()) {
+            val slices: List<String> = line.split(",")
+            if (slices.size == 5) {
+                enjoy = newEnjoy(slices[0], slices[1], slices[2], slices[3], slices[4])
+            }
+        }
+        return enjoy
+    }
+
+    fun getEnjoyFileLastModified(): String {
+        var inputStreamReader: InputStreamReader = InputStreamReader(updatedInputStream)
+        var bufferedReader: BufferedReader = BufferedReader(inputStreamReader)
+        return bufferedReader.readLine()
     }
 
     private suspend fun insertAll(enjoys: List<Enjoy>) {
