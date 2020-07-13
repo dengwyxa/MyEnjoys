@@ -4,7 +4,8 @@
     android:id="@+id/cellConstraintLayout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/cardview_shadow_end_color"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
     android:paddingTop="4dp"
     android:paddingBottom="4dp">
 
@@ -23,8 +24,9 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text="2020"
-            android:textColor="@color/design_default_color_primary"
+            android:textColor="@color/cardview_dark_background"
             android:textSize="16sp"
+            android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -39,16 +41,6 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintGuide_percent="0.2" />
-
-    <View
-        android:id="@+id/divider3"
-        android:layout_width="1dp"
-        android:layout_height="75dp"
-        android:background="?android:attr/listDivider"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/guideline"
-        app:layout_constraintStart_toStartOf="@+id/guideline"
-        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/constraintLayout"
@@ -66,7 +58,7 @@
             android:paddingLeft="8dp"
             android:paddingRight="8dp"
             android:text="剧名"
-            android:textColor="@color/design_default_color_primary"
+            android:textColor="@color/cardview_dark_background"
             android:textSize="16sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -82,16 +74,6 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintGuide_percent="0.5" />
-
-    <View
-        android:id="@+id/divider4"
-        android:layout_width="1dp"
-        android:layout_height="75dp"
-        android:background="?android:attr/listDivider"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/constraintLayout"
-        app:layout_constraintStart_toEndOf="@+id/constraintLayout"
-        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/constraintLayout3"
@@ -110,7 +92,7 @@
             android:paddingLeft="8dp"
             android:paddingRight="8dp"
             android:text="演员"
-            android:textColor="@color/design_default_color_primary"
+            android:textColor="@color/cardview_dark_background"
             android:textSize="16sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

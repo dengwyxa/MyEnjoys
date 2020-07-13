@@ -11,6 +11,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.fragment_enjoy.*
 
 const val ARG_TYPE = "type"
@@ -59,6 +60,12 @@ class EnjoyFragment : Fragment() {
         enjoyAdapter = EnjoyAdapter(enjoyViewModel!!)
         recyclerView.adapter = enjoyAdapter
         recyclerView.addItemDecoration(DividerItemDecoration(activity, DividerItemDecoration.VERTICAL))
+        // 给adapter增加数据观察者。当数据被插入时，把layoutManager滚动到顶部
+        recyclerView.adapter?.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver(){
+            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+                (recyclerView.layoutManager as LinearLayoutManager).scrollToPosition(0)
+            }
+        })
 
         filteredEnjoys = enjoyViewModel!!.findAllByType()
         filteredEnjoys.observe(viewLifecycleOwner, Observer {
@@ -70,32 +77,29 @@ class EnjoyFragment : Fragment() {
         super.onCreateOptionsMenu(menu, inflater)
         inflater.inflate(R.menu.menu, menu)
         val searchView = menu.findItem(R.id.app_bar_search).actionView as SearchView
-        searchView.maxWidth = 900
+        searchView.maxWidth = Integer.MAX_VALUE
+
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
             override fun onQueryTextSubmit(query: String?): Boolean {
-                var judge = true
-                if (query != null) {
-                    judge = query.isNotEmpty()
-                }
-                return judge
+                return false
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
                 Log.d("EnjoyFragment", "onQueryTextChange:$newText")
 
-                if (newText == null) {
-                    return true
+                filteredEnjoys.removeObservers(viewLifecycleOwner)
+                if (newText == null || newText.isEmpty()) {
+                    filteredEnjoys = enjoyViewModel!!.findAllByType()
                 } else {
-                    filteredEnjoys.removeObservers(viewLifecycleOwner)
                     filteredEnjoys = enjoyViewModel!!.findByKeyword(newText.trim())
-                    filteredEnjoys.observe(viewLifecycleOwner, Observer {
-                        enjoyAdapter!!.submitList(it)
-                    })
+
                 }
+                filteredEnjoys.observe(viewLifecycleOwner, Observer {
+                    enjoyAdapter!!.submitList(it)
+                })
 
                 return true
             }
-
         })
     }
 

@@ -12,13 +12,13 @@ import java.io.InputStream
 import java.io.InputStreamReader
 
 class EnjoyRepository(application: Application) {
-    val CSV_FILE: String = "allEnjoys.csv"
-    val UPDATED_FILE: String = "updated.txt"
-    val KEY_FILE_UPDATE_DATETIME: String = "ENJOY_UPDATED_DATE"
+    private val CSVFILE: String = "allEnjoys.csv"
+    private val UPDATEDFILE: String = "updated.txt"
+    private val KEYFILEUPDATEDATETIME: String = "ENJOY_UPDATED_DATE"
 
-    val enjoyDao: EnjoyDao = EnjoyDatabase.getInstance(application.applicationContext).enjoyDao()
-    val enjoyInputStream: InputStream = application.resources.assets.open(CSV_FILE)
-    val updatedInputStream: InputStream = application.resources.assets.open(UPDATED_FILE)
+    private val enjoyDao: EnjoyDao = EnjoyDatabase.getInstance(application.applicationContext).enjoyDao()
+    private val enjoyInputStream: InputStream = application.resources.assets.open(CSVFILE)
+    private val updatedInputStream: InputStream = application.resources.assets.open(UPDATEDFILE)
     val sp: SharedPreferences = application.getSharedPreferences("MY_ENJOY", Context.MODE_PRIVATE)
 
     fun findAllByType(type: String) : LiveData<List<Enjoy>> {
@@ -31,10 +31,10 @@ class EnjoyRepository(application: Application) {
 
     fun initDB() {
         GlobalScope.launch {
-            var lastModified: String = sp.getString(KEY_FILE_UPDATE_DATETIME, "")!!
+            var lastModified: String = sp.getString(KEYFILEUPDATEDATETIME, "")!!
             var enjoyLastModified: String = getEnjoyFileLastModified()
-            Log.d("EnjoyFragment", "sp modify date:" + lastModified)
-            Log.d("EnjoyFragment", "fileLastModified:" + enjoyLastModified)
+            Log.d("EnjoyFragment", "sp modify date:$lastModified")
+            Log.d("EnjoyFragment", "fileLastModified:$enjoyLastModified")
             // 只有文件更新过才再次加载
             if (enjoyLastModified > lastModified) {
                 // 处理CSV文件，写DB
@@ -53,13 +53,13 @@ class EnjoyRepository(application: Application) {
 
                 // 更新SharedPreference
                 val spEdit = sp.edit()
-                spEdit.putString(KEY_FILE_UPDATE_DATETIME, enjoyLastModified)
+                spEdit.putString(KEYFILEUPDATEDATETIME, enjoyLastModified)
                 spEdit.apply()
             }
         }
     }
 
-    fun parseEnjoy(line: String) : Enjoy? {
+    private fun parseEnjoy(line: String) : Enjoy? {
         var enjoy: Enjoy? = null
         if (line != null && line.isNotEmpty()) {
             val slices: List<String> = line.split(",")
@@ -70,7 +70,7 @@ class EnjoyRepository(application: Application) {
         return enjoy
     }
 
-    fun getEnjoyFileLastModified(): String {
+    private fun getEnjoyFileLastModified(): String {
         var inputStreamReader: InputStreamReader = InputStreamReader(updatedInputStream)
         var bufferedReader: BufferedReader = BufferedReader(inputStreamReader)
         return bufferedReader.readLine()

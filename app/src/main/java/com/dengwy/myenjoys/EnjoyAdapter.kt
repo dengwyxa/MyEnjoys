@@ -1,5 +1,7 @@
 package com.dengwy.myenjoys
 
+import android.content.Intent
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,7 +27,11 @@ class EnjoyAdapter(enjoyViewModelParam: EnjoyViewModel) : ListAdapter<Enjoy, MyV
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         val holder = MyViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.enjoy_cell, parent, false))
         holder.itemView.setOnClickListener{
-
+            val uri =
+                Uri.parse("https://baike.baidu.com/item/" + holder.title.text)
+            val intent = Intent(Intent.ACTION_VIEW)
+            intent.data = uri
+            holder.itemView.context.startActivity(intent)
         }
         return holder
     }
@@ -37,7 +43,6 @@ class EnjoyAdapter(enjoyViewModelParam: EnjoyViewModel) : ListAdapter<Enjoy, MyV
             yearSeason.text = if (enjoy.season.equals("-")) enjoy.year else enjoy.year + enjoy.season
             title.text = enjoy.title
             actors.text = enjoy.actors
-
         }
     }
 }
