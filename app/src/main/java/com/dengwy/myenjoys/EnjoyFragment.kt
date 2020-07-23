@@ -1,8 +1,13 @@
 package com.dengwy.myenjoys
 
+import android.app.Activity
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
+import android.widget.ImageView
 import android.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
@@ -78,29 +83,63 @@ class EnjoyFragment : Fragment() {
         inflater.inflate(R.menu.menu, menu)
         val searchView = menu.findItem(R.id.app_bar_search).actionView as SearchView
         searchView.maxWidth = Integer.MAX_VALUE
-
+        val searchViewPlateId = searchView.context.resources.getIdentifier("android:id/search_src_text", null, null)
+        val searchCloseButtonId = searchView.context.resources.getIdentifier("android:id/search_close_btn", null, null)
+        val searchPlateEditText = searchView.findViewById(searchViewPlateId) as EditText
+        val searchCloseButton = searchView.findViewById(searchCloseButtonId) as ImageView
+        searchPlateEditText.setOnEditorActionListener { v, actionId, event ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                searchCloseButton.performClick()
+            }
+            true
+        }
+        searchCloseButton.setOnClickListener {
+            Log.d("EnjoyFragment", "setOnClickListener")
+            searchView.setQuery("", false)
+            searchView.isIconified = true
+        }
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
             override fun onQueryTextSubmit(query: String?): Boolean {
+                Log.d("EnjoyFragment", "onQueryTextSubmit")
                 return false
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
                 Log.d("EnjoyFragment", "onQueryTextChange:$newText")
 
-                filteredEnjoys.removeObservers(viewLifecycleOwner)
-                if (newText == null || newText.isEmpty()) {
-                    filteredEnjoys = enjoyViewModel!!.findAllByType()
-                } else {
-                    filteredEnjoys = enjoyViewModel!!.findByKeyword(newText.trim())
+                doSearch(newText)
 
-                }
-                filteredEnjoys.observe(viewLifecycleOwner, Observer {
-                    enjoyAdapter!!.submitList(it)
-                })
-
-                return true
+                return false
             }
         })
+        searchView.setOnCloseListener {
+            Log.d("EnjoyFragment", "onClose")
+            false
+        }
+    }
+
+    fun doSearch(newText: String?) {
+        filteredEnjoys.removeObservers(viewLifecycleOwner)
+        if (newText == null || newText.isEmpty()) {
+            filteredEnjoys = enjoyViewModel!!.findAllByType()
+
+        } else {
+            filteredEnjoys = enjoyViewModel!!.findByKeyword(newText.trim())
+
+        }
+        filteredEnjoys.observe(viewLifecycleOwner, Observer {
+            enjoyAdapter!!.submitList(it)
+        })
+    }
+
+    fun hideIme() {
+        val acti : Activity = requireActivity()
+        val imm = acti.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+        var view = acti.currentFocus
+        if (view == null) {
+            view = View(acti)
+        }
+        imm.hideSoftInputFromWindow(view.windowToken, 0)
     }
 
     companion object {
